@@ -37,14 +37,73 @@ namespace ProductFeederCoreLib.Services
 
         public async Task<Product> GetProductAsync(int id)
         {
-            return await _dbContext.Products.FindAsync(id);
+            return await _dbContext.Products.Where(prop=>prop.Id==id)
+                .Include(prop => prop.Brand).ThenInclude(brandProp => brandProp.Supplier)
+                .Include(prop => prop.Prices)
+                .Select(prop =>
+                    new Product()
+                    {
+                        Id = prop.Id,
+                        sku = prop.sku,
+                        Brand = new Brand()
+                        {
+                            Id = prop.Brand.Id,
+                            Name = prop.Brand.Name,
+                            Prefix = prop.Brand.Prefix,
+                            CreationDateTimeStamp = prop.CreationDateTimeStamp,
+                            Supplier = new Supplier()
+                            {
+                                Id = prop.Brand.Supplier.Id,
+                                SupplierName = prop.Brand.Supplier.SupplierName,
+                                CreationDateTimeStamp = prop.Brand.Supplier.CreationDateTimeStamp,
+                                Prefix = prop.Brand.Supplier.Prefix,
+                                RazonSocial = prop.Brand.Supplier.RazonSocial,
+                                RFC = prop.Brand.Supplier.RFC,
+                                Email = prop.Brand.Supplier.Email
+                            }
+                        },
+                        ShortDescription = prop.ShortDescription,
+                        LongDescription = prop.LongDescription,
+                        CreationDateTimeStamp = prop.CreationDateTimeStamp,
+                        Active = prop.Active
+                    }
+                 )
+                .FirstAsync();
         }
 
         public async Task<IEnumerable<Product>> GetProductsAsync(int limit = 100)
         {
             return await _dbContext.Products.Where(prop => prop.Active == true)
-                .Include(prop=> prop.Brand)
+                .Include(prop=> prop.Brand).ThenInclude(brandProp=>brandProp.Supplier)
                 .Include(prop=>prop.Prices)
+                .Select(prop =>
+                    new Product()
+                    {
+                        Id = prop.Id,
+                        sku = prop.sku,
+                        Brand = new Brand()
+                        {
+                            Id=prop.Brand.Id,
+                            Name=prop.Brand.Name,
+                            Prefix=prop.Brand.Prefix,
+                            CreationDateTimeStamp= prop.CreationDateTimeStamp,
+                            Supplier= new Supplier()
+                            {
+                                Id=prop.Brand.Supplier.Id,
+                                SupplierName= prop.Brand.Supplier.SupplierName,
+                                CreationDateTimeStamp=prop.Brand.Supplier.CreationDateTimeStamp,
+                                Prefix= prop.Brand.Supplier.Prefix,
+                                RazonSocial= prop.Brand.Supplier.RazonSocial,
+                                RFC= prop.Brand.Supplier.RFC,
+                                Email= prop.Brand.Supplier.Email
+                            }
+                        },
+                        ShortDescription = prop.ShortDescription,
+                        LongDescription = prop.LongDescription,
+                        CreationDateTimeStamp = prop.CreationDateTimeStamp,
+                        Active = prop.Active
+                    }
+                 )
                 .Take(limit)
                 .ToListAsync();
         }

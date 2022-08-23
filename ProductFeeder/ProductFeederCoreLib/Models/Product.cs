@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ProductFeederCoreLib.Models
@@ -18,14 +19,21 @@ namespace ProductFeederCoreLib.Models
         public string sku{ get; set; }
         public string ShortDescription { get; set; }
         public string LongDescription { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         [ForeignKey("Brand")]
         public int BrandId { get; set; }
         public Brand? Brand { get; set; }
+        
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IEnumerable<Price>? Prices { get; set; }
 
         public int Id { get => _id; set => _id=value; }
         public DateTime? CreationDateTimeStamp { get => _created; set => _created=value; }
+
+        [JsonIgnore]
         public DateTime? DeletionDateTimeStamp { get => _deleted; set => _deleted=value; }
+        [JsonIgnore]
         public bool Active { get => _active; set => _active=true; }
     }
 }
