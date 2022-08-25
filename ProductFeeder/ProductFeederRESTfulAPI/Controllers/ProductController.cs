@@ -19,9 +19,9 @@ namespace ProductFeederRESTfulAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProducts([FromQuery] int limit=100)
+        public async Task<IActionResult> GetProducts([FromQuery] int limit = 100, [FromQuery] int offset=0)
         {
-            return Ok(await _productService.GetProductsAsync(limit));
+            return Ok(await _productService.GetProductsAsync(limit,offset));
         }
 
         [HttpGet("{id}")]

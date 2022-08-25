@@ -70,8 +70,8 @@ namespace ProductFeederCoreLib.Services
                  )
                 .FirstAsync();
         }
-
-        public async Task<IEnumerable<Product>> GetProductsAsync(int limit = 100)
+        
+        public async Task<IEnumerable<Product>> GetProductsAsync(int limit = 100,int offset=0)
         {
             return await _dbContext.Products.Where(prop => prop.Active == true)
                 .Include(prop=> prop.Brand).ThenInclude(brandProp=>brandProp.Supplier)
@@ -104,6 +104,7 @@ namespace ProductFeederCoreLib.Services
                         Active = prop.Active
                     }
                  )
+                .Skip(offset)
                 .Take(limit)
                 .ToListAsync();
         }
