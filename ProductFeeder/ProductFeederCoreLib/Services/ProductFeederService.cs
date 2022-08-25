@@ -1,4 +1,10 @@
-﻿using ProductFeederRESTfulAPI.DTO;
+﻿using Hangfire;
+using Hangfire.Storage;
+using Microsoft.EntityFrameworkCore;
+using ProductFeederCoreLib.Data;
+using ProductFeederCoreLib.Interfaces;
+using ProductFeederCoreLib.Models;
+using ProductFeederRESTfulAPI.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,29 +14,54 @@ using System.Threading.Tasks;
 
 namespace ProductFeederCoreLib.Services
 {
-    public class ProductFeederService
+    public class ProductFeederService : IServices<ProductFeederService>
     {
         private readonly ProductsServices _productsService;
+        private readonly FeederProductsDbContext _dbContext;
         private string _tmpPath = "tmp";
         private string _tmpPrefixJsonFileName = "tmp";
         private string _fileName = "";
 
-        public ProductFeederService(ProductsServices productsService)
+        private IBackgroundJobClient _backgroundJob { get; }
+
+        public ProductFeederService(IServices<ProductsServices> productsService, IBackgroundJobClient backgroundJob, FeederProductsDbContext dbContext)
         {
-            _productsService = productsService;
+            _productsService = (ProductsServices)productsService;
+            _backgroundJob = backgroundJob;
+            _dbContext = dbContext;
         }
 
-        public async Task ProcessProductFeed(IEnumerable<ProductDTO> products)
+        public async Task<Feed> ProcessProductFeed(IEnumerable<Product> products)
         {
             //1. Save the products to process on the tmp file
             SaveJsonFile(JsonSerializer.Serialize(products));
 
             //2. We create the schedule process to upload the files to database
+            var idjob=_backgroundJob.Schedule(() => ProcessProducts(GetAbsPathSaved()),TimeSpan.FromMinutes(5) );
 
             //3. we save the ids on database to return to the user on request
+            Feed newFeed = new Feed() { 
+                feedUid = Guid.NewGuid().ToString(),
+                Active = true,
+                CreationDateTimeStamp = DateTime.Now,
+                file= GetAbsPathSaved(),
+                processId=Int32.Parse(idjob),
+                status=0
+
+            };
+            await _dbContext.Feeds.AddAsync(newFeed);
+            await _dbContext.SaveChangesAsync();
 
             //4. return the info of the feed
+            return newFeed;
+        }
 
+        public async Task ProcessProducts(string jsonFilePath)
+        {
+            List<Product> products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(jsonFilePath)).ToList();
+
+            if (products.Count == 0) return;
+            await _productsService.AddProductsAsync(products);
         }
 
         public async void SaveJsonFile(string content)
@@ -38,7 +69,7 @@ namespace ProductFeederCoreLib.Services
             if(!Directory.Exists(Directory.GetCurrentDirectory()+"\\"+_tmpPath)) 
                 Directory.CreateDirectory(Directory.GetCurrentDirectory()+"\\"+_tmpPath);
 
-            await File.WriteAllTextAsync(getFilePath(), content);
+            await File.WriteAllTextAsync(GetFilePath(), content);
         }
 
         public string GetFilePathSaved()
@@ -46,7 +77,11 @@ namespace ProductFeederCoreLib.Services
             return Directory.GetCurrentDirectory()+$"\\{_tmpPath}\\{_fileName}";
         }
 
-        private string getFilePath()
+        public string GetAbsPathSaved()
+        {
+            return $"./{_tmpPath}/{_fileName}";
+        }
+        private string GetFilePath()
         {
             Guid guid = Guid.NewGuid();
             _fileName= $"{_tmpPrefixJsonFileName}_products_{guid}.json";
@@ -57,5 +92,40 @@ namespace ProductFeederCoreLib.Services
         {
             _tmpPath = path;
         }
+
+        public async Task<Feed?> CheckStatusFeed(string uid)
+        {
+            
+            Feed? feed=  await _dbContext.Feeds.Where(prop => prop.feedUid == uid).FirstOrDefaultAsync();
+
+            if (feed == null) return null;
+            JobData Job = Hangfire.JobStorage.Current.GetConnection().GetJobData(feed.processId.ToString());
+
+            if(Job.State== Hangfire.States.SucceededState.StateName)
+            {
+                feed.status = (int)FeedStatus.COMPLETED;
+            }
+            else
+            {
+                feed.status = (int)FeedStatus.IN_PROGRESS;
+            }
+
+            if (Job.State == Hangfire.States.ScheduledState.StateName)
+            {
+                feed.status = (int)FeedStatus.CREATED;
+            }
+
+            _dbContext.Feeds.Update(feed);
+            await _dbContext.SaveChangesAsync();
+
+            return feed;
+        }
     }
+}
+
+public enum FeedStatus
+{
+    CREATED=0,
+    IN_PROGRESS = 2,
+    COMPLETED =10
 }

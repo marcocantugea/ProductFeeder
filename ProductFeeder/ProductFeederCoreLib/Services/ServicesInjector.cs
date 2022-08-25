@@ -17,6 +17,7 @@ namespace ProductFeederCoreLib.Services
             services.AddScoped<IServices<SupplierServices>, SupplierServices>();
             services.AddScoped<IServices<BrandsServices>, BrandsServices>();
             services.AddScoped<IServices<ProductsServices>, ProductsServices>();
+            services.AddScoped<IServices<ProductFeederService>, ProductFeederService>();
             return services;
         }
 
