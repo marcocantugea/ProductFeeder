@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductFeederCoreLib.Data;
 
@@ -11,9 +12,10 @@ using ProductFeederCoreLib.Data;
 namespace ProductFeederCoreLib.Migrations
 {
     [DbContext(typeof(FeederProductsDbContext))]
-    partial class FeederProductsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220825215410_AddFieldsToProduct")]
+    partial class AddFieldsToProduct
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,37 +74,18 @@ namespace ProductFeederCoreLib.Migrations
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("CreationDateTimeStamp")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("current_timestamp");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeletionDateTimeStamp")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("conditionDescription")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Conditions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Active = true,
-                            CreationDateTimeStamp = new DateTime(2022, 8, 25, 18, 34, 53, 423, DateTimeKind.Local).AddTicks(3142),
-                            conditionDescription = "NEW"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Active = true,
-                            CreationDateTimeStamp = new DateTime(2022, 8, 25, 18, 34, 53, 423, DateTimeKind.Local).AddTicks(3189),
-                            conditionDescription = "REFURBISH"
-                        });
                 });
 
             modelBuilder.Entity("ProductFeederCoreLib.Models.Feed", b =>
@@ -211,6 +194,7 @@ namespace ProductFeederCoreLib.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EAN")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LongDescription")
@@ -227,6 +211,7 @@ namespace ProductFeederCoreLib.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UPC")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Warranty")

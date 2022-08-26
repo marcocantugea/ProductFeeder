@@ -19,6 +19,7 @@ namespace ProductFeederCoreLib.Data
             builder.ApplyConfiguration(new BrandDbConfig());
             builder.ApplyConfiguration(new ProductsDbConfig());
             builder.ApplyConfiguration(new PricesDbConfig());
+            builder.ApplyConfiguration(new ConditionDBConfig());
 
         }
 
@@ -28,6 +29,8 @@ namespace ProductFeederCoreLib.Data
         public DbSet<Price> Prices { get; set; }
 
         public DbSet<Feed> Feeds { get; set; }
+
+        public DbSet<Condition> Conditions { get; set; }
 
 
 

@@ -1,4 +1,5 @@
-﻿using ProductFeederCoreLib.Services;
+﻿using Hangfire;
+using ProductFeederCoreLib.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace ProductFeederTest.Fixture
         {
 
             ProductsServices productService = new ProductsServices((new FeederProductsDbContextFixture()).GetDbContext());
-            _service = new ProductFeederService(productService);
+            //_service = new ProductFeederService(productService,new BackgroundJob());
         }
 
        public ProductFeederService GetService()

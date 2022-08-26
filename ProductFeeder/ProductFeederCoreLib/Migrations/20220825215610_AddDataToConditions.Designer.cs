@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductFeederCoreLib.Data;
 
@@ -11,9 +12,10 @@ using ProductFeederCoreLib.Data;
 namespace ProductFeederCoreLib.Migrations
 {
     [DbContext(typeof(FeederProductsDbContext))]
-    partial class FeederProductsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220825215610_AddDataToConditions")]
+    partial class AddDataToConditions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,14 +95,14 @@ namespace ProductFeederCoreLib.Migrations
                         {
                             Id = 1,
                             Active = true,
-                            CreationDateTimeStamp = new DateTime(2022, 8, 25, 18, 34, 53, 423, DateTimeKind.Local).AddTicks(3142),
+                            CreationDateTimeStamp = new DateTime(2022, 8, 25, 16, 56, 10, 752, DateTimeKind.Local).AddTicks(4722),
                             conditionDescription = "NEW"
                         },
                         new
                         {
                             Id = 2,
                             Active = true,
-                            CreationDateTimeStamp = new DateTime(2022, 8, 25, 18, 34, 53, 423, DateTimeKind.Local).AddTicks(3189),
+                            CreationDateTimeStamp = new DateTime(2022, 8, 25, 16, 56, 10, 752, DateTimeKind.Local).AddTicks(4761),
                             conditionDescription = "REFURBISH"
                         });
                 });
@@ -211,6 +213,7 @@ namespace ProductFeederCoreLib.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EAN")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LongDescription")
@@ -227,6 +230,7 @@ namespace ProductFeederCoreLib.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UPC")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Warranty")

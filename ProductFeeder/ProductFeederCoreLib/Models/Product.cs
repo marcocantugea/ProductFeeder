@@ -19,6 +19,26 @@ namespace ProductFeederCoreLib.Models
         public string sku{ get; set; }
         public string ShortDescription { get; set; }
         public string LongDescription { get; set; }
+        
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? ProductCode { get; set; }
+        
+        public decimal? BaseCost { get; set; }
+
+        public decimal? unitPrice { get; set; }
+        public bool Warranty { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? EAN { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? UPC { get; set; }
+
+        [ForeignKey("Condition")]
+        public int? ConditionId;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Condition? Condition { get; set; }
+
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         [ForeignKey("Brand")]
