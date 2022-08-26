@@ -39,6 +39,12 @@ namespace ProductFeederCoreLib.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Condition? Condition { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [ForeignKey("Shipping")]
+        public int? ShippingId { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Shipping? Shipping { get; set; }
+
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         [ForeignKey("Brand")]

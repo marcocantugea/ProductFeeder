@@ -20,7 +20,7 @@ namespace ProductFeederCoreLib.Data
             builder.ApplyConfiguration(new ProductsDbConfig());
             builder.ApplyConfiguration(new PricesDbConfig());
             builder.ApplyConfiguration(new ConditionDBConfig());
-
+            builder.ApplyConfiguration(new ShippingDBConfig());
         }
 
         public DbSet<Supplier> Suppliers { get; set; }
@@ -32,6 +32,7 @@ namespace ProductFeederCoreLib.Data
 
         public DbSet<Condition> Conditions { get; set; }
 
+        public DbSet<Shipping> Shippings { get; set; }
 
 
     }

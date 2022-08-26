@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductFeederCoreLib.Data;
 
@@ -11,9 +12,10 @@ using ProductFeederCoreLib.Data;
 namespace ProductFeederCoreLib.Migrations
 {
     [DbContext(typeof(FeederProductsDbContext))]
-    partial class FeederProductsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220826001035_addShippingModel")]
+    partial class addShippingModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,7 +59,7 @@ namespace ProductFeederCoreLib.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Brands", (string)null);
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("ProductFeederCoreLib.Models.Condition", b =>
@@ -86,7 +88,7 @@ namespace ProductFeederCoreLib.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Conditions", (string)null);
+                    b.ToTable("Conditions");
 
                     b.HasData(
                         new
@@ -138,7 +140,7 @@ namespace ProductFeederCoreLib.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Feeds", (string)null);
+                    b.ToTable("Feeds");
                 });
 
             modelBuilder.Entity("ProductFeederCoreLib.Models.Price", b =>
@@ -179,7 +181,7 @@ namespace ProductFeederCoreLib.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Prices", (string)null);
+                    b.ToTable("Prices");
                 });
 
             modelBuilder.Entity("ProductFeederCoreLib.Models.Product", b =>
@@ -251,7 +253,7 @@ namespace ProductFeederCoreLib.Migrations
 
                     b.HasIndex("ShippingId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("ProductFeederCoreLib.Models.Shipping", b =>
@@ -278,7 +280,7 @@ namespace ProductFeederCoreLib.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shippings", (string)null);
+                    b.ToTable("Shippings");
 
                     b.HasData(
                         new
@@ -339,7 +341,7 @@ namespace ProductFeederCoreLib.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers", (string)null);
+                    b.ToTable("Suppliers");
                 });
 
             modelBuilder.Entity("ProductFeederCoreLib.Models.Brand", b =>

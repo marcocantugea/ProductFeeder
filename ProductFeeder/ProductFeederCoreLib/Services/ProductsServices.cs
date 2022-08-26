@@ -40,6 +40,7 @@ namespace ProductFeederCoreLib.Services
             return await _dbContext.Products.Where(prop=>prop.Id==id)
                 .Include(prop => prop.Brand).ThenInclude(brandProp => brandProp.Supplier)
                 .Include(prop=>prop.Condition)
+                .Include(prop=>prop.Shipping)
                 .Include(prop => prop.Prices)
                 .Select(prop =>
                     new Product()
@@ -67,7 +68,8 @@ namespace ProductFeederCoreLib.Services
                         LongDescription = prop.LongDescription,
                         CreationDateTimeStamp = prop.CreationDateTimeStamp,
                         Active = prop.Active,
-                        Condition=prop.Condition
+                        Condition=prop.Condition,
+                        Shipping=prop.Shipping
                     }
                  )
                 .FirstAsync();
@@ -78,6 +80,7 @@ namespace ProductFeederCoreLib.Services
             return await _dbContext.Products.Where(prop => prop.Active == true)
                 .Include(prop=> prop.Brand).ThenInclude(brandProp=>brandProp.Supplier)
                 .Include(prop=>prop.Condition)
+                .Include(prop=>prop.Shipping)
                 .Include(prop=>prop.Prices)
                 .Select(prop =>
                     new Product()
@@ -105,7 +108,8 @@ namespace ProductFeederCoreLib.Services
                         LongDescription = prop.LongDescription,
                         CreationDateTimeStamp = prop.CreationDateTimeStamp,
                         Active = prop.Active,
-                        Condition= prop.Condition
+                        Condition= prop.Condition,
+                        Shipping= prop.Shipping
                     }
                  )
                 .Skip(offset)

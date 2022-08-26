@@ -16,5 +16,8 @@ namespace ProductFeederRESTfulAPI.DTO
 
         [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingDefault)]
         public int? conditionId { get; set; } = 1;
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public int? shippingId { get; set; } = 2;
     }
 }
