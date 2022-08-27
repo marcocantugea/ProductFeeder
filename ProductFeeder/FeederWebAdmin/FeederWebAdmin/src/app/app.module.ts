@@ -10,6 +10,9 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ErrorComponent } from './main/error/error.component'
 import { AppRoutingModule } from './app-routing.module';
+import { BrandsComponent } from './pages/brands/brands.component';
+import { ProductsComponent } from './pages/products/products.component';
+import { FeedsComponent } from './pages/feeds/feeds.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +20,10 @@ import { AppRoutingModule } from './app-routing.module';
     MenuComponent,
     SuppliersComponent,
     DashboardComponent,
-    ErrorComponent
+    ErrorComponent,
+    BrandsComponent,
+    ProductsComponent,
+    FeedsComponent
   ],
   imports: [
     BrowserModule,
