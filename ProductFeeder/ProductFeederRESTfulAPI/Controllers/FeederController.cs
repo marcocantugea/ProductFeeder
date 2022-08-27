@@ -42,5 +42,30 @@ namespace ProductFeederRESTfulAPI.Controllers
         {
             return Ok(await _productFeederServices.CheckStatusFeed(uid));
         }
+
+        [HttpGet("{uid}/detail")]
+        public async Task<IActionResult> GetDeatilFeed([FromRoute] string uid, [FromQuery] int limit=100, [FromQuery] int offset=0)
+        {
+            var items = new List<Product>();
+            int totalItems = 0;
+            try
+            {
+                
+                items = (await _productFeederServices.GetFeedDetail(uid,limit,offset)).ToList();
+                totalItems = await _productFeederServices.GetFeedTotalItemsAdded(uid);
+            }
+            catch (Exception)
+            {
+                
+            }
+
+            var response = new
+            {
+                totalItems = totalItems,
+                data = items
+            };
+
+            return Ok(response);
+        }
     }
 }

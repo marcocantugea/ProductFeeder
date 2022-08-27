@@ -120,6 +120,69 @@ namespace ProductFeederCoreLib.Services
 
             return feed;
         }
+
+        public async Task<IEnumerable<Product>> GetFeedDetail(string uid,int limit=100, int offset=0)
+        {
+
+            if(limit>100) limit=100;
+
+            Feed? feed = await _dbContext.Feeds.Where(prop => prop.feedUid == uid).FirstOrDefaultAsync();
+
+            if (feed == null) return new List<Product>();
+            List<Product> products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(feed.file)).ToList();
+            var skus = products.Select(item => item.sku).ToList();
+
+            return await _dbContext.Products.Where(prop => skus.Contains(prop.sku) && prop.Active==true)
+                .Include(prop => prop.Brand).ThenInclude(brandProp => brandProp.Supplier)
+                .Include(prop => prop.Condition)
+                .Include(prop => prop.Shipping)
+                .Include(prop => prop.Prices)
+                .Select(prop =>
+                    new Product()
+                    {
+                        Id = prop.Id,
+                        sku = prop.sku,
+                        Brand = new Brand()
+                        {
+                            Id = prop.Brand.Id,
+                            Name = prop.Brand.Name,
+                            Prefix = prop.Brand.Prefix,
+                            CreationDateTimeStamp = prop.CreationDateTimeStamp,
+                            Supplier = new Supplier()
+                            {
+                                Id = prop.Brand.Supplier.Id,
+                                SupplierName = prop.Brand.Supplier.SupplierName,
+                                CreationDateTimeStamp = prop.Brand.Supplier.CreationDateTimeStamp,
+                                Prefix = prop.Brand.Supplier.Prefix,
+                                RazonSocial = prop.Brand.Supplier.RazonSocial,
+                                RFC = prop.Brand.Supplier.RFC,
+                                Email = prop.Brand.Supplier.Email
+                            },
+                        },
+                        ShortDescription = prop.ShortDescription,
+                        LongDescription = prop.LongDescription,
+                        CreationDateTimeStamp = prop.CreationDateTimeStamp,
+                        Active = prop.Active,
+                        Condition = prop.Condition,
+                        Shipping = prop.Shipping
+                    }
+                 )
+                .Skip(offset)
+                .Take(limit)
+                .ToListAsync();
+
+        }
+
+        public async Task<int> GetFeedTotalItemsAdded(string uid)
+        {
+            Feed? feed = await _dbContext.Feeds.Where(prop => prop.feedUid == uid).FirstOrDefaultAsync();
+
+            if (feed == null) return 0;
+            List<Product> products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(feed.file)).ToList();
+            var skus = products.Select(item => item.sku).ToList();
+
+            return await _dbContext.Products.Where(prop => skus.Contains(prop.sku) && prop.Active == true).CountAsync();
+        }
     }
 }
 

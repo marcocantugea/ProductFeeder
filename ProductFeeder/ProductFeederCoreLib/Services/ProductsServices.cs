@@ -117,6 +117,5 @@ namespace ProductFeederCoreLib.Services
                 .ToListAsync();
         }
 
-
     }
 }
