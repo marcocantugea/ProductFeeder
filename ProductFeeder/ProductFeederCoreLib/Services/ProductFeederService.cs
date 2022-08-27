@@ -1,12 +1,17 @@
-﻿using Hangfire;
+﻿using AutoMapper;
+using CsvHelper;
+using Hangfire;
+using Hangfire.Common;
 using Hangfire.Storage;
 using Microsoft.EntityFrameworkCore;
 using ProductFeederCoreLib.Data;
 using ProductFeederCoreLib.Interfaces;
+using ProductFeederCoreLib.Mappers;
 using ProductFeederCoreLib.Models;
 using ProductFeederRESTfulAPI.DTO;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -21,14 +26,16 @@ namespace ProductFeederCoreLib.Services
         private string _tmpPath = "tmp";
         private string _tmpPrefixJsonFileName = "tmp";
         private string _fileName = "";
+        private IMapper _mapper;
 
         private IBackgroundJobClient _backgroundJob { get; }
 
-        public ProductFeederService(IServices<ProductsServices> productsService, IBackgroundJobClient backgroundJob, FeederProductsDbContext dbContext)
+        public ProductFeederService(IServices<ProductsServices> productsService, IBackgroundJobClient backgroundJob, FeederProductsDbContext dbContext, IMapper mapper)
         {
             _productsService = (ProductsServices)productsService;
             _backgroundJob = backgroundJob;
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         public async Task<Feed> ProcessProductFeed(IEnumerable<Product> products)
@@ -56,12 +63,58 @@ namespace ProductFeederCoreLib.Services
             return newFeed;
         }
 
+        public async Task<Feed> ProcessProductFeedCsv(string csvFilePath, IMapper mapper)
+        {
+
+            var idjob = _backgroundJob.Schedule(() => ProcessProductsFromCsv(csvFilePath), TimeSpan.FromMinutes(5));
+
+            Feed newFeed = new Feed()
+            {
+                feedUid = Guid.NewGuid().ToString(),
+                Active = true,
+                CreationDateTimeStamp = DateTime.Now,
+                file = csvFilePath,
+                processId = Int32.Parse(idjob),
+                status = 0
+
+            };
+            await _dbContext.Feeds.AddAsync(newFeed);
+            await _dbContext.SaveChangesAsync();
+
+            return newFeed;
+        }
+
         public async Task ProcessProducts(string jsonFilePath)
         {
             List<Product> products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(jsonFilePath)).ToList();
 
             if (products.Count == 0) return;
             await _productsService.AddProductsAsync(products);
+        }
+
+        public async Task ProcessProductsFromCsv(string csvFilePath)
+        {
+            List<Product> productsFromCsv = GetProductsFromCsv(csvFilePath);
+            if (productsFromCsv.Count == 0) throw new Exception("no records to process");
+            await _productsService.AddProductsAsync(productsFromCsv);
+        }
+
+        private List<Product> GetProductsFromCsv(string csvFilePath)
+        {
+            List<ProductDTO> productsDto = new List<ProductDTO>();
+
+            using (var reader = new StreamReader(csvFilePath))
+            {
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    csv.Context.RegisterClassMap<ProductDTOCsvMapper>();
+                    productsDto = csv.GetRecords<ProductDTO>().ToList();
+                }
+            }
+
+            List<Product> products = _mapper.Map<IEnumerable<ProductDTO>, IEnumerable<Product>>(productsDto).ToList();
+
+            return products;
         }
 
         public async void SaveJsonFile(string content)
@@ -99,21 +152,14 @@ namespace ProductFeederCoreLib.Services
             Feed? feed=  await _dbContext.Feeds.Where(prop => prop.feedUid == uid).FirstOrDefaultAsync();
 
             if (feed == null) return null;
-            JobData Job = Hangfire.JobStorage.Current.GetConnection().GetJobData(feed.processId.ToString());
+            JobData Job = JobStorage.Current.GetConnection().GetJobData(feed.processId.ToString());
 
-            if(Job.State== Hangfire.States.SucceededState.StateName)
-            {
-                feed.status = (int)FeedStatus.COMPLETED;
-            }
-            else
-            {
-                feed.status = (int)FeedStatus.IN_PROGRESS;
-            }
+            if (feed.status == (int)FeedStatus.COMPLETED) return feed;
 
-            if (Job.State == Hangfire.States.ScheduledState.StateName)
-            {
-                feed.status = (int)FeedStatus.CREATED;
-            }
+            if(Job.State== Hangfire.States.SucceededState.StateName) feed.status = (int)FeedStatus.COMPLETED;
+            if(Job.State == Hangfire.States.ProcessingState.StateName) feed.status = (int)FeedStatus.IN_PROGRESS;
+            if (Job.State == Hangfire.States.FailedState.StateName) feed.status = (int)FeedStatus.FAILED;
+            if (Job.State == Hangfire.States.ScheduledState.StateName) feed.status = (int)FeedStatus.CREATED;
 
             _dbContext.Feeds.Update(feed);
             await _dbContext.SaveChangesAsync();
@@ -129,7 +175,19 @@ namespace ProductFeederCoreLib.Services
             Feed? feed = await _dbContext.Feeds.Where(prop => prop.feedUid == uid).FirstOrDefaultAsync();
 
             if (feed == null) return new List<Product>();
-            List<Product> products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(feed.file)).ToList();
+
+
+            List<Product> products = new List<Product>();
+
+            if (feed.file.Contains(".csv"))
+            {
+                products = GetProductsFromCsv(feed.file);
+            }
+            else
+            {
+                products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(feed.file)).ToList();
+            }
+                
             var skus = products.Select(item => item.sku).ToList();
 
             return await _dbContext.Products.Where(prop => skus.Contains(prop.sku) && prop.Active==true)
@@ -178,7 +236,15 @@ namespace ProductFeederCoreLib.Services
             Feed? feed = await _dbContext.Feeds.Where(prop => prop.feedUid == uid).FirstOrDefaultAsync();
 
             if (feed == null) return 0;
-            List<Product> products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(feed.file)).ToList();
+            List<Product> products = new List<Product>();
+            if (feed.file.Contains(".csv"))
+            {
+                products = GetProductsFromCsv(feed.file);
+            }
+            else
+            {
+                products = JsonSerializer.Deserialize<IEnumerable<Product>>(File.ReadAllText(feed.file)).ToList();
+            }
             var skus = products.Select(item => item.sku).ToList();
 
             return await _dbContext.Products.Where(prop => skus.Contains(prop.sku) && prop.Active == true).CountAsync();
@@ -190,5 +256,6 @@ public enum FeedStatus
 {
     CREATED=0,
     IN_PROGRESS = 2,
-    COMPLETED =10
+    COMPLETED =10,
+    FAILED =50,
 }

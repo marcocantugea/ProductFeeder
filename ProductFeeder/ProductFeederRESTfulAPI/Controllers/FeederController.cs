@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProductFeederCoreLib.Interfaces;
 using ProductFeederCoreLib.Models;
 using ProductFeederCoreLib.Services;
 using ProductFeederRESTfulAPI.DTO;
+using System.Net.Mime;
 
 namespace ProductFeederRESTfulAPI.Controllers
 {
@@ -22,6 +24,8 @@ namespace ProductFeederRESTfulAPI.Controllers
         [HttpPost("products")]
         public async Task<IActionResult> AddProducts([FromBody] IEnumerable<ProductDTO> products )
         {
+            if (products.ToList().Count > 1000) return BadRequest();
+
             List<Product> productsObjs = _mapper.Map<IEnumerable<ProductDTO>, IEnumerable<Product>>(products).ToList();
             Feed? feedCreated = null;
             try
@@ -35,6 +39,49 @@ namespace ProductFeederRESTfulAPI.Controllers
             }
             
             return Ok(feedCreated);
+        }
+
+        [HttpPost("products/csv")]
+        public async Task<IActionResult> AddProductFromCsv([FromForm] List<IFormFile> files)
+        {
+            try
+            {
+                IList<Feed> feeds= new List<Feed>();
+                foreach (IFormFile file in files)
+                {
+                    if (file.ContentType != "text/csv") return BadRequest();
+                    if (file.Length > 10000000) return BadRequest();
+
+                    //save the file in tmp folder
+
+                    string fileName = $"./tmp/tmp_products_csv_{Guid.NewGuid().ToString()}.csv";
+                    using (var stream = new FileStream(fileName,FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    Feed? feedCreated = null;
+
+                    try
+                    {
+                        feedCreated = await _productFeederServices.ProcessProductFeedCsv(fileName,_mapper);
+                        feeds.Add(feedCreated);
+                    }
+                    catch (Exception)
+                    {
+
+                        return BadRequest();
+                    }
+
+                }
+
+                return Ok(feeds);
+            }
+            catch (Exception)
+            {
+
+                return BadRequest();
+            }
         }
 
         [HttpGet("{uid}")]
