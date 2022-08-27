@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductFeederCoreLib", "Pro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductFeederTest", "ProductFeederTest\ProductFeederTest.csproj", "{2F5A93F6-117A-4994-8B36-59C22B3EC589}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductFedder.DTO", "ProductFedder.DTO\ProductFedder.DTO.csproj", "{0A6CD382-B529-4DEE-A82A-1B6CA45D0E5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductFedder.DTO", "ProductFedder.DTO\ProductFedder.DTO.csproj", "{0A6CD382-B529-4DEE-A82A-1B6CA45D0E5E}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "FeederWebAdmin", "FeederWebAdmin\FeederWebAdmin\FeederWebAdmin.esproj", "{3254B71A-7479-4201-B9B4-AF8302CBE9A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,12 @@ Global
 		{0A6CD382-B529-4DEE-A82A-1B6CA45D0E5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A6CD382-B529-4DEE-A82A-1B6CA45D0E5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A6CD382-B529-4DEE-A82A-1B6CA45D0E5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3254B71A-7479-4201-B9B4-AF8302CBE9A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3254B71A-7479-4201-B9B4-AF8302CBE9A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3254B71A-7479-4201-B9B4-AF8302CBE9A7}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{3254B71A-7479-4201-B9B4-AF8302CBE9A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3254B71A-7479-4201-B9B4-AF8302CBE9A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3254B71A-7479-4201-B9B4-AF8302CBE9A7}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
